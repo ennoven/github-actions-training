@@ -1,0 +1,50 @@
+name: CI - Build and Push to Azure Container Registry
+
+on:
+  # Ejecutar el pipeline al hacer un push a la rama main
+  push:
+    branches:
+      - main
+  # Ejecutar el pipeline al hacer un pull request a la rama develop
+  pull_request:
+    branches:
+      - develop
+  # Ejecutar el pipeline manualmente
+  workflow_dispatch:
+
+jobs:
+  build-container:
+    # Máquinas virtuales disponibles:
+    # ubuntu-latest, ubuntu-22.04, o ubuntu-20.04
+    # windows-latest, windows-2022, o windows-2019
+    # macos-latest, macos-13, o macos-12
+    runs-on: ubuntu-latest
+
+    steps:
+      # Tarea: Hacer checkout del código fuente del repositorio
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Tarea: Login en Azure Container Registry
+      - name: Login en Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.registry }}
+          username: ${{ secrets.azure_client_id }}
+          password: ${{ secrets.azure_client_secret }}
+
+      # Tarea: Construir la imagen de Docker
+      - name: Compilar imagen de Docker
+        run: |
+          echo "Compilando imagen de Docker con SHA: ${{ github.sha }}"
+          docker build -t ${{ secrets.registry }}/myapp:${{ github.sha }} .
+          echo "Añadiendo tag latest a la imagen"
+          docker tag ${{ secrets.registry }}/myapp:${{ github.sha }} ${{ secrets.registry }}/myapp:latest
+        
+      # Tarea: Push de la imagen de Docker a Azure Container Registry
+      - name: Enviar la imagen al registro de contenedor
+        run: |
+          echo "Enviando imagen de Docker con SHA: ${{ github.sha }}"
+          docker push ${{ secrets.registry }}/myapp:${{ github.sha }}
+          echo "Enviando imagen de Docker con tag latest"
+          docker push ${{ secrets.registry }}/myapp:latest
