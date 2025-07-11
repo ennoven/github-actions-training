@@ -29,22 +29,22 @@ jobs:
       - name: Login en Azure Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.registry }}
-          username: ${{ secrets.azure_client_id }}
-          password: ${{ secrets.azure_client_secret }}
+          registry: ${{ secrets.REGISTRY }}
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
       # Tarea: Construir la imagen de Docker
       - name: Compilar imagen de Docker
         run: |
           echo "Compilando imagen de Docker con SHA: ${{ github.sha }}"
-          docker build -t ${{ secrets.registry }}/myapp:${{ github.sha }} .
+          docker build -t ${{ secrets.REGISTRY }}/myapp:${{ github.sha }} .
           echo "Añadiendo tag latest a la imagen"
-          docker tag ${{ secrets.registry }}/myapp:${{ github.sha }} ${{ secrets.registry }}/myapp:latest
+          docker tag ${{ secrets.REGISTRY }}/myapp:${{ github.sha }} ${{ secrets.REGISTRY }}/myapp:latest
         
       # Tarea: Push de la imagen de Docker a Azure Container Registry
       - name: Enviar la imagen al registro de contenedor
         run: |
           echo "Enviando imagen de Docker con SHA: ${{ github.sha }}"
-          docker push ${{ secrets.registry }}/myapp:${{ github.sha }}
+          docker push ${{ secrets.REGISTRY }}/myapp:${{ github.sha }}
           echo "Enviando imagen de Docker con tag latest"
-          docker push ${{ secrets.registry }}/myapp:latest
+          docker push ${{ secrets.REGISTRY }}/myapp:latest
